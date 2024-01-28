@@ -19,10 +19,7 @@ pthread_mutex_t lock;
 
 int stock = -1, inp_array[stockSize];
 int theProduce;
-int produce() 
-{
-  return theProduce++;
-}
+
 void *producer(void *ptr)
 {
   int i;
@@ -41,6 +38,11 @@ void *consumer(void *ptr)
     get(i);
     sleep(2);
   }
+}
+
+int produce() 
+{
+  return theProduce++;
 }
 
 void put(int p) 

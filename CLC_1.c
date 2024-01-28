@@ -7,13 +7,13 @@
 #include<pthread.h>
 #include<stdlib.h>
 #include<unistd.h>
+#include<time.h>
 
 #define stockSize 1000
 
 void put(int p);
 int get(int i);
 void consume(int i);
-srand();
 
 pthread_mutex_t lock;
 
@@ -83,6 +83,8 @@ int main()
 {
   pthread_mutex_init(&lock, NULL);
   
+  srand(time(NULL));
+  
   pthread_t id_1;
   pthread_t id_2;
   pthread_create(&id_1, NULL, producer, NULL);
@@ -92,8 +94,8 @@ int main()
   pthread_join(id_2, NULL);
   
   sleep(200);
-  pthread_cancel(pthread id_1);
-  pthread_cancel(pthread id_2);
+  pthread_cancel(id_1);
+  pthread_cancel(id_2);
   
   pthread_mutex_destroy(&lock);
   

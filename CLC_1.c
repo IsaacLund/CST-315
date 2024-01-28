@@ -8,11 +8,13 @@
 #include<stdlib.h>
 #include<unistd.h>
 
-# define stockSize 1000
+#define stockSize 1000
 
 void put(int p);
 int get(int i);
 void consume(int i);
+
+pthread_mutex_t lock;
 
 int stock = -1, inp_array[stockSize];
 int theProduce;
@@ -78,7 +80,6 @@ void consume(int i)
 
 int main()
 {
-  pthread_mutex_t lock;
   pthread_mutex_init(&lock, NULL);
   
   pthread_t id_1;
@@ -91,9 +92,9 @@ int main()
   
   sleep(500);
   pthread_cancel(id_1, NULL);
-  thread_cancel(id_2, NULL);
+  pthread_cancel(id_2, NULL);
   
-  pthread_mutex_destory(&lock);
+  pthread_mutex_destroy(&lock);
   
   return 0;
 }

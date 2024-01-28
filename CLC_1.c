@@ -13,6 +13,7 @@
 void put(int p);
 int get(int i);
 void consume(int i);
+srand();
 
 pthread_mutex_t lock;
 
@@ -90,9 +91,9 @@ int main()
   pthread_join(id_1, NULL);
   pthread_join(id_2, NULL);
   
-  sleep(500);
-  pthread_cancel(id_1, NULL);
-  pthread_cancel(id_2, NULL);
+  sleep(200);
+  pthread_cancel(pthread id_1);
+  pthread_cancel(pthread id_2);
   
   pthread_mutex_destroy(&lock);
   

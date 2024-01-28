@@ -12,8 +12,9 @@
 #define stockSize 1000
 
 void put(int p);
-int get(int i);
+void get(int i);
 void consume(int i);
+int produce(void);
 
 pthread_mutex_t lock;
 

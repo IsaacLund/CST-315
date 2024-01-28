@@ -42,7 +42,7 @@ void *consumer(void *ptr)
 
 void put(int p) 
 {
-  pthread_mutex_t lock;
+  pthread_mutex_lock(&lock);
   
   if (stock < stockSize) {
     stock = stock + 1;
@@ -50,7 +50,7 @@ void put(int p)
     printf("They stocked %i produce, now have %i Stocked.\n", p, stock);
   } else {
     printf("Full Stock.\n");
-    sleep(100);
+    sleep(10);
   }
   
   pthread_mutex_unlock(&lock);
@@ -65,7 +65,7 @@ void get(int i)
       consume(i);
   } else {
     printf("Out of Stock.\n");
-    sleep(100);
+    sleep(10);
   }
   
   pthread_mutex_unlock(&lock);
@@ -88,5 +88,12 @@ int main()
   
   pthread_join(id_1, NULL);
   pthread_join(id_2, NULL);
+  
+  sleep(500);
+  pthread_cancel(id_1, NULL);
+  thread_cancel(id_2, NULL);
+  
+  pthread_mutex_destory(&lock);
+  
   return 0;
 }

@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <semaphore.h>
-#include <fcntl.h>
 #include <unistd.h>
+#include <sys/wait.h>
 
 #define BUFFER_SIZE 5
 
@@ -55,22 +55,37 @@ void consumer() {
 }
 
 int main() {
-    sem_init(&empty, 0, BUFFER_SIZE);
-    sem_init(&full, 0, 0);
-    sem_init(&mutex, 0, 1);
+    sem_init(&empty, 1, BUFFER_SIZE);  // Set initial value to 1
+    sem_init(&full, 1, 0);             // Set initial value to 0
+    sem_init(&mutex, 1, 1);            // Set initial value to 1
 
-    pid_t pid = fork();
+    // Create producer process
+    pid_t producer_pid = fork();
 
-    if (pid < 0) {
-        perror("Fork failed");
+    if (producer_pid < 0) {
+        perror("Error creating producer process");
         exit(EXIT_FAILURE);
-    } else if (pid == 0) {
+    } else if (producer_pid == 0) {
+        // Child process (producer)
+        producer();
+        exit(EXIT_SUCCESS);
+    }
+
+    // Create consumer process
+    pid_t consumer_pid = fork();
+
+    if (consumer_pid < 0) {
+        perror("Error creating consumer process");
+        exit(EXIT_FAILURE);
+    } else if (consumer_pid == 0) {
         // Child process (consumer)
         consumer();
-    } else {
-        // Parent process (producer)
-        producer();
+        exit(EXIT_SUCCESS);
     }
+
+    // Wait for both processes to finish
+    waitpid(producer_pid, NULL, 0);
+    waitpid(consumer_pid, NULL, 0);
 
     sem_destroy(&empty);
     sem_destroy(&full);

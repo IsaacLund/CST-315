@@ -5,6 +5,7 @@
 #include <sys/wait.h>
 
 #define BUFFER_SIZE 5
+#define MAX_ITEMS 10 // Change this to the desired number of iterations
 
 sem_t empty, full, mutex;
 int buffer[BUFFER_SIZE];
@@ -21,8 +22,7 @@ int consume() {
     return item;
 }
 
-sem_t * producer(int item) {
-   // while (1) {
+void producer(int item) {
         sem_wait(&empty);
         sem_wait(&mutex);
 
@@ -34,11 +34,9 @@ sem_t * producer(int item) {
         sem_post(&full);
 
         sleep(1); // Simulate some work
-   // }
 }
 
-sem_t * consumer() {
-    //while (1) {
+void consumer() {
         sem_wait(&full);
         sem_wait(&mutex);
 
@@ -49,32 +47,39 @@ sem_t * consumer() {
         sem_post(&empty);
 
         sleep(2); // Simulate some work
-    //}
 }
 
 int main() {
-    sem_init(&empty, 0, BUFFER_SIZE);  // Set initial value to 1
-    sem_init(&full, 0, 0);             // Set initial value to 0
-    sem_init(&mutex, 0, 1);            // Set initial value to 1
+    sem_init(&empty, 0, BUFFER_SIZE);
+    sem_init(&full, 0, 0);
+    sem_init(&mutex, 0, 1);
 
-    // Create producer process
-    pid_t pid = fork();
-    while (1) {
-        if (pid < 0) {
-            perror("Error creating producer process");
+    pid_t producer_pid = fork();
+    if (producer_pid < 0) {
+        perror("Error creating producer process");
+        exit(EXIT_FAILURE);
+    } else if (producer_pid == 0) {
+        // Child process for producer
+        int item = 1;
+        producer(item);
+        exit(EXIT_SUCCESS);
+    } else {
+        // Parent process for consumer
+        pid_t consumer_pid = fork();
+        if (consumer_pid < 0) {
+            perror("Error creating consumer process");
             exit(EXIT_FAILURE);
-        } else if (pid == 0) {
-            //Process for producer
-            int item = 1;
-            sem_init(&producer(item),1, 0);
+        } else if (consumer_pid == 0) {
+            // Child process for consumer
+            consumer();
             exit(EXIT_SUCCESS);
         } else {
-          //Process for consumer
-            sem_init(&consumer,2, 0);
-            exit(EXIT_SUCCESS);
+            // Parent process waiting for both producer and consumer to finish
+            wait(NULL);
+            wait(NULL);
         }
     }
-    
+
     sem_destroy(&empty);
     sem_destroy(&full);
     sem_destroy(&mutex);

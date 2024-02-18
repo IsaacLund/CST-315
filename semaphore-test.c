@@ -23,6 +23,7 @@ int consume() {
 }
 
 void producer(int item) {
+    for (int i = 0; i < MAX_ITEMS; ++i) {
         sem_wait(&empty);
         sem_wait(&mutex);
 
@@ -34,9 +35,11 @@ void producer(int item) {
         sem_post(&full);
 
         sleep(1); // Simulate some work
+    }
 }
 
 void consumer() {
+    for (int i = 0; i < MAX_ITEMS; ++i) {
         sem_wait(&full);
         sem_wait(&mutex);
 
@@ -47,6 +50,7 @@ void consumer() {
         sem_post(&empty);
 
         sleep(2); // Simulate some work
+    }
 }
 
 int main() {

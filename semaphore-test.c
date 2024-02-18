@@ -23,7 +23,7 @@ int consume() {
 }
 
 void producer(int item) {
-    for (int i = 0; i < MAX_ITEMS; ++i) {
+    while (1) {
         sem_wait(&empty);
         sem_wait(&mutex);
 
@@ -36,10 +36,16 @@ void producer(int item) {
 
         sleep(1); // Simulate some work
     }
+
+    // Cleanup: Destroy semaphores before exiting
+    sem_destroy(&empty);
+    sem_destroy(&full);
+    sem_destroy(&mutex);
+    exit(EXIT_SUCCESS);
 }
 
 void consumer() {
-    for (int i = 0; i < MAX_ITEMS; ++i) {
+    while (1) {
         sem_wait(&full);
         sem_wait(&mutex);
 
@@ -51,6 +57,12 @@ void consumer() {
 
         sleep(2); // Simulate some work
     }
+
+    // Cleanup: Destroy semaphores before exiting
+    sem_destroy(&empty);
+    sem_destroy(&full);
+    sem_destroy(&mutex);
+    exit(EXIT_SUCCESS);
 }
 
 int main() {
@@ -66,7 +78,6 @@ int main() {
         // Child process for producer
         int item = 1;
         producer(item);
-        exit(EXIT_SUCCESS);
     } else {
         // Parent process for consumer
         pid_t consumer_pid = fork();
@@ -76,17 +87,12 @@ int main() {
         } else if (consumer_pid == 0) {
             // Child process for consumer
             consumer();
-            exit(EXIT_SUCCESS);
         } else {
             // Parent process waiting for both producer and consumer to finish
             wait(NULL);
             wait(NULL);
         }
     }
-
-    sem_destroy(&empty);
-    sem_destroy(&full);
-    sem_destroy(&mutex);
 
     return 0;
 }

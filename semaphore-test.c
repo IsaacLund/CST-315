@@ -6,8 +6,10 @@
 
 #define BUFFER_SIZE 5
 
-sem_t empty, full, mutex;
-int buffer[BUFFER_SIZE];
+sem_t* empty;
+sem_t* full;
+sem_t* mutex;
+int* buffer;
 int in = 0, out = 0;
 
 void produce(int item) {
@@ -25,15 +27,15 @@ void producer() {
     int item = 1;
 
     while (1) {
-        sem_wait(&empty);
-        sem_wait(&mutex);
+        sem_wait(empty);
+        sem_wait(mutex);
 
         produce(item);
         printf("Produced item %d\n", item);
         item++;
 
-        sem_post(&mutex);
-        sem_post(&full);
+        sem_post(mutex);
+        sem_post(full);
 
         sleep(1); // Simulate some work
     }
@@ -41,55 +43,51 @@ void producer() {
 
 void consumer() {
     while (1) {
-        sem_wait(&full);
-        sem_wait(&mutex);
+        sem_wait(full);
+        sem_wait(mutex);
 
         int item = consume();
         printf("Consumed item %d\n", item);
 
-        sem_post(&mutex);
-        sem_post(&empty);
+        sem_post(mutex);
+        sem_post(empty);
 
         sleep(2); // Simulate some work
     }
 }
 
 int main() {
-    sem_init(&empty, 1, BUFFER_SIZE);  // Set initial value to 1
-    sem_init(&full, 1, 0);             // Set initial value to 0
-    sem_init(&mutex, 1, 1);            // Set initial value to 1
+    empty = sem_open("/empty", O_CREAT, 0666, BUFFER_SIZE);
+    full = sem_open("/full", O_CREAT, 0666, 0);
+    mutex = sem_open("/mutex", O_CREAT, 0666, 1);
 
-    // Create producer process
+    // Create shared memory for buffer
+    int shm_id = shmget(IPC_PRIVATE, BUFFER_SIZE * sizeof(int), IPC_CREAT | 0666);
+    buffer = (int*)shmat(shm_id, NULL, 0);
+
     pid_t producer_pid = fork();
 
-    if (producer_pid < 0) {
-        perror("Error creating producer process");
-        exit(EXIT_FAILURE);
-    } else if (producer_pid == 0) {
+    if (producer_pid == 0) {
         // Child process (producer)
         producer();
-        exit(EXIT_SUCCESS);
-    }
-
-    // Create consumer process
-    pid_t consumer_pid = fork();
-
-    if (consumer_pid < 0) {
-        perror("Error creating consumer process");
-        exit(EXIT_FAILURE);
-    } else if (consumer_pid == 0) {
-        // Child process (consumer)
+    } else if (producer_pid > 0) {
+        // Parent process (consumer)
         consumer();
-        exit(EXIT_SUCCESS);
+        wait(NULL); // Wait for the producer to finish
+    } else {
+        perror("Fork failed");
+        return 1;
     }
 
-    // Wait for both processes to finish
-    waitpid(producer_pid, NULL, 0);
-    waitpid(consumer_pid, NULL, 0);
-
-    sem_destroy(&empty);
-    sem_destroy(&full);
-    sem_destroy(&mutex);
+    // Cleanup
+    sem_unlink("/empty");
+    sem_unlink("/full");
+    sem_unlink("/mutex");
+    sem_close(empty);
+    sem_close(full);
+    sem_close(mutex);
+    shmdt(buffer);
+    shmctl(shm_id, IPC_RMID, NULL);
 
     return 0;
 }

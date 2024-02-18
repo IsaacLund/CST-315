@@ -21,7 +21,7 @@ int consume() {
     return item;
 }
 
-const char* producer() {
+void producer() {
     int item = 1;
 
     while (1) {
@@ -39,7 +39,7 @@ const char* producer() {
     }
 }
 
-const char* consumer() {
+void consumer() {
     while (1) {
         sem_wait(&full);
         sem_wait(&mutex);
@@ -59,10 +59,18 @@ int main() {
     sem_init(&full, 0, 0);
     sem_init(&mutex, 0, 1);
 
-    // Create producer and consumer threads
-    sem_open(*producer, O_CREAT, mode_t 2, int value);
-    sem_open(*consumer, O_CREAT, mode_t 2, int value);
-    //consumer(NULL);
+    pid_t pid = fork();
+
+    if (pid < 0) {
+        perror("Fork failed");
+        exit(EXIT_FAILURE);
+    } else if (pid == 0) {
+        // Child process (consumer)
+        consumer();
+    } else {
+        // Parent process (producer)
+        producer();
+    }
 
     sem_destroy(&empty);
     sem_destroy(&full);

@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <semaphore.h>
+#include <fcntl.h>
 #include <unistd.h>
 
 #define BUFFER_SIZE 5
@@ -20,7 +21,7 @@ int consume() {
     return item;
 }
 
-void* producer(void* arg) {
+const char* producer() {
     int item = 1;
 
     while (1) {
@@ -38,7 +39,7 @@ void* producer(void* arg) {
     }
 }
 
-void* consumer(void* arg) {
+const char* consumer() {
     while (1) {
         sem_wait(&full);
         sem_wait(&mutex);
@@ -59,8 +60,9 @@ int main() {
     sem_init(&mutex, 0, 1);
 
     // Create producer and consumer threads
-    producer(NULL);
-    consumer(NULL);
+    sem_open(*producer, O_CREAT, mode_t 2, int value);
+    sem_open(*consumer, O_CREAT, mode_t 2, int value);
+    //consumer(NULL);
 
     sem_destroy(&empty);
     sem_destroy(&full);

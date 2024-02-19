@@ -3,13 +3,12 @@
 #include <semaphore.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <sys/mman.h>
 
 #define BUFFER_SIZE 5
-#define MAX_ITEMS 10 // Change this to the desired number of iterations
 
-sem_t empty, full, mutex;
-int buffer[BUFFER_SIZE];
-int in = 0, out = 0;
+sem_t *empty, *full, *mutex;
+int *buffer, in = 0, out = 0;
 
 void produce(int item) {
     buffer[in] = item;
@@ -24,51 +23,65 @@ int consume() {
 
 void producer(int item) {
     while (1) {
-        sem_wait(&empty);
-        sem_wait(&mutex);
+        sem_wait(empty);
+        sem_wait(mutex);
 
         produce(item);
         printf("Produced item %d\n", item);
         item++;
 
-        sem_post(&mutex);
-        sem_post(&full);
+        sem_post(mutex);
+        sem_post(full);
 
         sleep(1); // Simulate some work
     }
 
-    // Cleanup: Destroy semaphores before exiting
-    sem_destroy(&empty);
-    sem_destroy(&full);
-    sem_destroy(&mutex);
+    // Cleanup: Destroy semaphores and unmap memory before exiting
+    sem_close(empty);
+    sem_close(full);
+    sem_close(mutex);
+    munmap(buffer, BUFFER_SIZE * sizeof(int));
     exit(EXIT_SUCCESS);
 }
 
 void consumer() {
     while (1) {
-        sem_wait(&full);
-        sem_wait(&mutex);
+        sem_wait(full);
+        sem_wait(mutex);
 
         int item = consume();
         printf("Consumed item %d\n", item);
 
-        sem_post(&mutex);
-        sem_post(&empty);
+        sem_post(mutex);
+        sem_post(empty);
 
         sleep(2); // Simulate some work
     }
 
-    // Cleanup: Destroy semaphores before exiting
-    sem_destroy(&empty);
-    sem_destroy(&full);
-    sem_destroy(&mutex);
+    // Cleanup: Destroy semaphores and unmap memory before exiting
+    sem_close(empty);
+    sem_close(full);
+    sem_close(mutex);
+    munmap(buffer, BUFFER_SIZE * sizeof(int));
     exit(EXIT_SUCCESS);
 }
 
 int main() {
-    sem_init(&empty, 0, BUFFER_SIZE);
-    sem_init(&full, 0, 0);
-    sem_init(&mutex, 0, 1);
+    // Create shared memory for buffer
+    buffer = mmap(NULL, BUFFER_SIZE * sizeof(int), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+    if (buffer == MAP_FAILED) {
+        perror("Error creating shared memory");
+        exit(EXIT_FAILURE);
+    }
+
+    // Initialize semaphores in shared memory
+    empty = mmap(NULL, sizeof(sem_t), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+    full = mmap(NULL, sizeof(sem_t), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+    mutex = mmap(NULL, sizeof(sem_t), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+
+    sem_init(empty, 1, BUFFER_SIZE);
+    sem_init(full, 1, 0);
+    sem_init(mutex, 1, 1);
 
     pid_t producer_pid = fork();
     if (producer_pid < 0) {

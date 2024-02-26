@@ -19,7 +19,10 @@ void execute_command(char **coms) {
         perror("Failed to use: fork");
     } else if (shid == 0) {
         // Child process
-        if (execvp(coms[0], coms) == -1) {
+        print("test cd: " + coms[0]);
+        if(*coms[0] == 'cd' && chdir(coms[1])) {
+            *shell = *shell + *coms[1];
+        } else if (execvp(coms[0], coms) == -1) {
             perror("Failed to use: execvp");
             exit(EXIT_FAILURE);
         }

@@ -1,6 +1,7 @@
 // CST-315-WF900A
 // Author: Isaac Lund
-// Date: 02/01-11/2024
+// Date: 02/01-25/2024
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -12,16 +13,21 @@
 #define M_C 64
 
 // Takes a coms char array and creates a child with fork if no error, execute first char element as a command into the terminal, if not failed. Then waits to execute next command and checks current status of previous child status. 
-void execute_command(char **coms) {
+void execute_command(char **coms, char **shell) {
     pid_t shid = fork();
+    //char *cd = "cd";
 
     if (shid == -1) {
         perror("Failed to use: fork");
     } else if (shid == 0) {
         // Child process
-        print("test cd: " + coms[0]);
-        if(*coms[0] == 'cd' && chdir(coms[1])) {
-            *shell = *shell + *coms[1];
+        //printf("test: commands ");
+        if (strcmp(coms[0], "cd") == 0) {
+            *shell[0] = *strcat(*shell, coms[1]);
+           // printf("test-1: %s> ", *shell);
+            if(chdir(coms[1]) == -1){
+              perror("Failed to use: chdir");
+            }
         } else if (execvp(coms[0], coms) == -1) {
             perror("Failed to use: execvp");
             exit(EXIT_FAILURE);
@@ -39,13 +45,12 @@ void execute_command(char **coms) {
 
 int main() {
     char input[M_I_S];
-    const char *shell = "starshell:~> ";
+    char *shell = "starshell:~";
     
     // Loops till a break loop condition to is met.
     while (1) {
         // Outputs a shell prompt waiting for the input of user and empties output.
-        printf("%s", shell);
-        fflush(stdout);
+        printf("%s> ", shell);
 
         // Stores user input as input information with a limit of M_I_S of 1024     characters then leaves while loop if input given is NULL
         if (fgets(input, M_I_S, stdin) == NULL) {
@@ -83,7 +88,7 @@ int main() {
 
             // Passes the coms char array to call a function to the execute command in it.
             if (com_l > 0) {
-                execute_command(coms);
+                execute_command(coms, &shell);
             }
         }
     }

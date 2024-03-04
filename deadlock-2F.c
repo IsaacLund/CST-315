@@ -15,13 +15,13 @@
 pthread_mutex_t read_mutex;
 pthread_mutex_t write_mutex;
 
-void *write(void *temp) 
+void *write_th(void *ptr) 
 {
   char *ret;
   FILE *file1;
   char *str;
   pthread_mutex_lock(&write_mutex);
-  sleep(5);
+  sleep(4);
   pthread_mutex_lock(&read_mutex);
   printf("\nFile locked, please enter the message \n");
   str=(char *)malloc(10*sizeof(char));
@@ -36,14 +36,14 @@ void *write(void *temp)
 }
 
 
-void *read(void *temp) 
+void *read_th(void *ptr) 
 {
   char *ret;
   FILE *file1;
   char *str;
-  sleep(1);
-  pthread_mutex_lock(&read_mutex);
   sleep(5);
+  pthread_mutex_lock(&read_mutex);
+  sleep(4);
   pthread_mutex_lock(&write_mutex);
   printf("\n Opening file \n");
   file1=fopen("temp","r");
@@ -64,11 +64,11 @@ int main()
   //pthread_attr_t attr;
   //int ret;
   //void *res;
-  pthread_create(&thread_id,NULL,write,NULL);
-  pthread_create(&thread_id1,NULL,read,NULL);
+  pthread_create(&thread_id, NULL, write_th, NULL);
+  pthread_create(&thread_id1, NULL, read_th, NULL);
   printf("\n Created thread");
-  pthread_join(thread_id,NULL);
-  pthread_join(thread_id1,NULL);
+  pthread_join(thread_id, NULL);
+  pthread_join(thread_id1, NULL);
   
   return 0;
 }

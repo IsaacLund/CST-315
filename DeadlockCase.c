@@ -2,6 +2,14 @@
 // one process locks resource1 and trying to get resource2, at the same time other locks resource2 
 // and trying to get resource1, so both are in deadlock.
 
+#include <stdio.h> 
+#include <pthread.h> 
+#include <stdlib.h>
+#include<unistd.h>
+
+pthread_mutex_t lock1;
+pthread_mutex_t lock2;
+
 void *resource1()
 {
 

@@ -10,10 +10,12 @@
 #include <stdio.h> 
 #include <pthread.h> 
 #include <stdlib.h>
+#include<unistd.h>
+
 pthread_mutex_t read_mutex;
 pthread_mutex_t write_mutex;
 
-void * write(void *temp) 
+void *write_th(void *ptr) 
 {
   char *ret;
   FILE *file1;
@@ -30,11 +32,11 @@ void * write(void *temp)
   pthread_mutex_unlock(&read_mutex);
   pthread_mutex_unlock(&write_mutex);
   printf("\nUnlocked the file you can read it now \n");
-  return ret;
+  //return ret;
 }
 
 
-void * read(void *temp) 
+void *read_th(void *ptr) 
 {
   char *ret;
   FILE *file1;
@@ -52,18 +54,27 @@ void * read(void *temp)
 
   pthread_mutex_unlock(&write_mutex);
   pthread_mutex_unlock(&read_mutex);
-  return ret;
+  //return ret;
 }
 
-main() 
+int main() 
 {
   pthread_t thread_id,thread_id1;
-  pthread_attr_t attr;
-  int ret;
-  void *res;
-  ret=pthread_create(&thread_id,NULL,&write,NULL);
-  ret=pthread_create(&thread_id1,NULL,&read,NULL);
+  //pthread_attr_t attr;
+  //int ret;
+  //void *res;
+  pthread_create(&thread_id,NULL,&write_th,NULL);
+  pthread_create(&thread_id1,NULL,&read_th,NULL);
   printf("\n Created thread");
-  pthread_join(thread_id,&res);
-  pthread_join(thread_id1,&res);
+  pthread_join(thread_id,NULL);
+  pthread_join(thread_id1,NULL);
+  
+  sleep(10);
+  pthread_cancel(thread_id);
+  pthread_cancel(thread_id1);
+  
+  pthread_mutex_destroy(&write_mutex);
+  pthread_mutex_destroy(&read_mutex);
+  
+  return 0;
 }

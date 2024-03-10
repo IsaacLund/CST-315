@@ -5,48 +5,79 @@
 
 #include<stdio.h>
 #include<stdlib.h>
+#include<time.h>
 
-void pageTable(char pages[]) {
+char **pageTable() {
+    char *pagesTable[4];
+    for (int i = 0; i < 4; i++) {
+        pagesTable[i] = malloc(256);
+        if (pagesTable[i] == NULL) {
+            perror("Cannot allocation memory.\n");
+            break;
+        }
+        while (1) {
+            int num = (rand() % (7-0+1))+ 0;
+            if (i = 0 && (pageTable[1] != "%d",num) && (pageTable[2] != "%d",num) && (pageTable[3] != "%d",num)) {
+                pageTable[i] = "%d", num;
+                break;
+            }
+        }
+        
+    }
+    
+}
 
+int setUpInput(char **pages) {
+    FILE *file_1;
+    
+    for (int i = 0; i < 4; i++) {
+        pages[i] = malloc(256);
+        if (pages[i] == NULL) {
+            perror("Cannot allocation memory.\n");
+            return 1;
+        }
+    }
+    
+    file_1 = fopen("Input","w");
+    if (file_1 == NULL) {
+        perror("Cannot create file.\n");
+        return 1;
+    }
+    
+    for (int i = 0; i < 4; i++) {
+        sprintf(pages[i], "page%d",i);
+        fprintf(file_1,"%s",pages[i]);
+    }
+    fclose(file_1);
+    
+    
+    file_1 =fopen("Input","r");
+    if (file_1 == NULL) {
+        perror("Cannot open file.\n");
+        return 1;
+     }
+    
+    size_t read = fread(*pages, 1, sizeof(*pages), file_1);
+    if (read = 0) {
+        perror("Cannot read file.\n");
+        fclose(file_1);
+        return 1;
+    }
+    fclose(file_1);
+    
+    return 0;
 }
 
 int main() {
-  char *pages[4];
-  FILE *file_1;
-  char *str;
-  
-  file_1 = fopen("Input","w");
-  if (file_1 == NULL) {
-      perror("Cannot create file.\n");
-      return 1;
-  }
-  
-  for (int i = 0; i < 4; i++) {
-      str = "page"+i;
-      fprintf(file_1,"%s",str);
-  }
-  fclose(file_1);
-  
-  
-  file_1 =fopen("Input","r");
-  if (file_1 == NULL) {
-      perror("Cannot open file.\n");
-      return 1;
-   }
-  
-  size_t read = fread(*pages, 1, sizeof(*pages), file_1);
-  if (read = 0) {
-      perror("Cannot read file.\n");
-      fclose(file_1);
-      return 1;
-  }
-  pages[read] = "\0";
-  fclose(file_1);
-  
-  printf("Here is the input file:\n");
-  for (int i = 0; i < 5; i++) {
-      printf("%s", pages[i]);
-  }
-  
-  return 0;
+    char *pages[4];
+    FILE *file_2;
+    
+    int t = setUpInput(pages);
+    
+    printf("Here is the input file:\n");
+    for (int i = 0; i < 4; i++) {
+        printf("%s\n", pages[i]);
+    }
+    
+    return 0;
 }

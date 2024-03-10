@@ -7,29 +7,28 @@
 #include<stdlib.h>
 #include<time.h>
 
+// This creates an array of the same size of local memory input, giving random physical memory address number location as array elements to link to the local memory
 int pageTable(char **pagesTable) {
+    srand(time(0));
+    printf("\n\nPage Table: \n");
     for (int i = 0; i < 4; i++) {
-        printf("\n2-Here-%d!\n",i);
         while (1) {
-            int num = (rand() % (7-0+1))+ 0;
-            if (i = 0 && (atoi(pagesTable[1]) != num) && (atoi(pagesTable[2]) != num) && (atoi(pagesTable[3]) != num)) {
+            int num = (rand() % 8);
+            if (i == 0 && (atoi(pagesTable[1]) != num) && (atoi(pagesTable[2]) != num) && (atoi(pagesTable[3]) != num)) {
                 sprintf(pagesTable[i],"%d", num);
-                printf("\n2-Here-a!\n");
+                printf("page0 | %d\n", num);
                 break;
-            } else if (i = 1 && (atoi(pagesTable[0]) != num) && (atoi(pagesTable[2]) != num) && (atoi(pagesTable[3]) != num)) {
+            } else if (i == 1 && (atoi(pagesTable[0]) != num) && (atoi(pagesTable[2]) != num) && (atoi(pagesTable[3]) != num)) {
                 sprintf(pagesTable[i],"%d", num);
-                printf("\n2-Here-b!\n");
+                printf("page1 | %d\n", num);
                 break;
-            } else if (i = 2 && (atoi(pagesTable[1]) != num) && (atoi(pagesTable[0]) != num) && (atoi(pagesTable[3]) != num)) {
+            } else if (i == 2 && (atoi(pagesTable[1]) != num) && (atoi(pagesTable[0]) != num) && (atoi(pagesTable[3]) != num)) {
                 sprintf(pagesTable[i],"%d", num);
-                printf("\n2-Here-c!\n");
+                printf("page2 | %d\n", num);
                 break;
-            } else if (i = 3 && (atoi(pagesTable[1]) != num) && (atoi(pagesTable[2]) != num) && (atoi(pagesTable[0]) != num)) {
+            } else if (i == 3 && (atoi(pagesTable[1]) != num) && (atoi(pagesTable[2]) != num) && (atoi(pagesTable[0]) != num)) {
                 sprintf(pagesTable[i],"%d", num);
-                printf("\n2-Here-d!\n");
-                break;
-            } else {
-                printf("\n2-Here-e!\n");
+                printf("page3 | %d\n", num);
                 break;
             }
         }
@@ -37,6 +36,7 @@ int pageTable(char **pagesTable) {
     return 0;
 }
 
+// This setup creates and reads an input file with a given local memory.
 int setUpInput(char **pages) {
     FILE *file_1;
     
@@ -58,20 +58,23 @@ int setUpInput(char **pages) {
         return 1;
      }
     
-    size_t read = fread(*pages, 4, 1, file_1);
-    
-    if (read = 0) {
-        perror("Cannot read file.\n");
-        fclose(file_1);
-        return 1;
+    for (int i = 0; i < 4; i++) {
+        if (fscanf(file_1, "%s", pages[i]) != 1) {
+            perror("Cannot read file.\n");
+            fclose(file_1);
+            return 1;
+        }
     }
+    
     fclose(file_1);
-    printf("\n1-Here!\n");
     return 0;
 }
 
+
+// takes the array of the page table and pages to assign the local memory data into the correct physical memory locations given by pagetable and displays it.
 int setUpOutput(char **pages, char **table) {
     FILE *file_2;
+    printf("\n\nPhyscial memory:\n");
     
     file_2 = fopen("Output","w");
     if (file_2 == NULL) {
@@ -79,21 +82,26 @@ int setUpOutput(char **pages, char **table) {
         return 1;
     }
     
-    for (int i = 0; i < 7; i++) {
+    for (int i = 0; i < 8; i++) {
         fprintf(file_2,"%d | ", i);
-        for (int j = 0; i < 4; j++) {
+        printf("%d | ", i);
+        for (int j = 0; j < 4; j++) {
             if (atoi(table[j]) == i) {
                 fprintf(file_2,"%s",pages[j]);
+                printf("%s",pages[j]);
                 break;
             }
         }
         fprintf(file_2,"\n");
+        printf("\n\n\n");
     }
     fclose(file_2);
     
     return 0;
 }
 
+
+// creates the arrays for pages input and table for pagetable with memory allocation and then runs two methods and frees the memory.
 int main() {
     char *pages[4];
     for (int i = 0; i < 4; i++) {
@@ -116,15 +124,20 @@ int main() {
     
     int input = setUpInput(pages);
     
-    printf("Here is the input file:\n");
+    printf("\n\nLocal memory:\n");
     for (int i = 0; i < 4; i++) {
         printf("%s\n", pages[i]);
     }
     
-    printf("\n2-Here!\n");
+    
     int process = pageTable(table);
-    printf("\n3-Here!\n");
+    
     int output = setUpOutput(pages, table);
-    printf("\n4-Here!\n");
+    
+    for (int i = 0 ; i < 4; i++) {
+        free(pages[i]);
+        free(table[i]);
+    }
+    
     return 0;
 }

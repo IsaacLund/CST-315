@@ -6,6 +6,7 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<time.h>
+#include<string.h>
 
 char **pageTable() {
     char *pagesTable[4];
@@ -17,14 +18,23 @@ char **pageTable() {
         }
         while (1) {
             int num = (rand() % (7-0+1))+ 0;
-            if (i = 0 && (pageTable[1] != "%d",num) && (pageTable[2] != "%d",num) && (pageTable[3] != "%d",num)) {
-                pageTable[i] = "%d", num;
+            if (i = 0 && (atoi(pagesTable[1]) != num) && (atoi(pagesTable[2]) != num) && (atoi(pagesTable[3]) != num)) {
+                sprintf(pagesTable[i],"%d", num);
+                break;
+            } else if (i = 1 && (atoi(pagesTable[0]) != num) && (atoi(pagesTable[2]) != num) && (atoi(pagesTable[3]) != num)) {
+                sprintf(pagesTable[i],"%d", num);
+                break;
+            } else if (i = 2 && (atoi(pagesTable[1]) != num) && (atoi(pagesTable[0]) != num) && (atoi(pagesTable[3]) != num)) {
+                sprintf(pagesTable[i],"%d", num);
+                break;
+            } else if (i = 3 && (atoi(pagesTable[1]) != num) && (atoi(pagesTable[2]) != num) && (atoi(pagesTable[0]) != num)) {
+                sprintf(pagesTable[i],"%d", num);
                 break;
             }
         }
         
     }
-    
+    return pagesTable;
 }
 
 int setUpInput(char **pages) {
@@ -45,8 +55,8 @@ int setUpInput(char **pages) {
     }
     
     for (int i = 0; i < 4; i++) {
-        sprintf(pages[i], "page%d",i);
-        fprintf(file_1,"%s",pages[i]);
+        sprintf(pages[i], "pge%d",i);
+        fprintf(file_1,"%s\n",pages[i]);
     }
     fclose(file_1);
     
@@ -68,16 +78,44 @@ int setUpInput(char **pages) {
     return 0;
 }
 
+int setUpOutput(char **pages, char **table) {
+    FILE *file_2;
+    pages[strcspn(*pages, "\n")] = '\0';
+    
+    file_2 = fopen("Output","w");
+    if (file_2 == NULL) {
+        perror("Cannot create file.\n");
+        return 1;
+    }
+    
+    for (int i = 0; i < 7; i++) {
+        fprintf(file_2,"%d | ", i);
+        for (int j = 0; i < 4; i++) {
+            if (atoi(table[j]) == i) {
+                fprintf(file_2,"%s",pages[j]);
+                break;
+            }
+        }
+        fprintf(file_2,"\n");
+    }
+    fclose(file_2);
+    
+    return 0;
+}
+
 int main() {
     char *pages[4];
-    FILE *file_2;
     
-    int t = setUpInput(pages);
+    int input = setUpInput(pages);
     
     printf("Here is the input file:\n");
     for (int i = 0; i < 4; i++) {
-        printf("%s\n", pages[i]);
+        printf("%s", pages[i]);
     }
+    
+    char **table = pageTable();
+    
+    int output = setUpOutput(pages, table);
     
     return 0;
 }
